@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rod diagrams</title>
+  <script src="https://cdn.plot.ly/plotly-4.1.1.min.js" charset="utf-8" defer></script>
+  <script src="rod.js" defer></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 1.5rem; background: #f3f5f8; color: #172333; font: 1rem system-ui, sans-serif; }
+    h1 { margin: 0 0 1.25rem; font-size: 1.5rem; font-weight: 600; }
+    main { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+    section { min-width: 0; overflow: hidden; background: white; border: 1px solid #d9e0e8; border-radius: .5rem; }
+    h2 { margin: 0; padding: 1rem 1rem 0; font-size: 1rem; font-weight: 600; }
+    .plot { width: 100%; height: max(340px, 39vh); }
+    .note { margin: 0; padding: 0 1rem 1rem; color: #4c5b6b; font-size: .875rem; }
+    @media (max-width: 760px) {
+      body { padding: 1rem; }
+      main { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Rod diagrams</h1>
+  <main>
+    <section aria-labelledby="equilibrium-title">
+      <h2 id="equilibrium-title">Equilibrium surface</h2>
+      <div id="equilibrium" class="plot" role="img" aria-label="Empty 3D view of the equilibrium surface"></div>
+    </section>
+    <section aria-labelledby="bifurcation-title">
+      <h2 id="bifurcation-title">Bifurcation diagram</h2>
+      <div id="bifurcation" class="plot" role="img" aria-label="Empty bifurcation diagram, lambda horizontally and x vertically"></div>
+    </section>
+    <section aria-labelledby="phase-title">
+      <h2 id="phase-title">Phase diagram</h2>
+      <div id="phase" class="plot" role="img" aria-label="Empty phase diagram, x horizontally and x dot vertically"></div>
+    </section>
+    <section aria-labelledby="physical-title">
+      <h2 id="physical-title">Physical representation</h2>
+      <div id="physical" class="plot" role="img" aria-label="Empty physical representation, sine of x horizontally and cosine of x vertically"></div>
+      <p class="note">Angle convention: (sin x, cos x); zero points upward.</p>
+    </section>
+  </main>
+  <noscript>Enable JavaScript to display the plot frames.</noscript>
+</body>
+</html>
