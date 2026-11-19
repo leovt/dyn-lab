@@ -17,20 +17,76 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   const axis = title => ({ title: { text: title }, range: [-1, 1], automargin: true });
 
-  // An empty 3D trace initializes the scene without adding any plot content.
-  // Axis meanings for the equilibrium surface can be assigned with the model.
-  Plotly.newPlot('equilibrium', [{ type: 'scatter3d', x: [], y: [], z: [] }], {
+  const xValues = Array.from({ length: 121 }, (_, i) => -3 + i * 6 / 120);
+  const lambdaValues = Array.from({ length: 121 }, (_, i) => -2 + i * 6 / 120);
+  const x0Values = lambdaValues.map(lambda =>
+    xValues.map(x => x - lambda * Math.sin(x))
+  );
+  const curveX = Array.from({ length: 2401 }, (_, i) => -3 + i * 6 / 2400);
+  const levelCurve = (level, color) => {
+    const lambdas = curveX.map(x => {
+      // x/sin(x) has the removable limit 1 at zero; nonzero levels have a pole.
+      const lambda = x === 0 ? (level === 0 ? 1 : NaN) : (x - level) / Math.sin(x);
+      return Number.isFinite(lambda) && lambda >= -2 && lambda <= 4 ? lambda : null;
+    });
+    return {
+      type: 'scatter3d', mode: 'lines',
+      x: curveX, y: lambdas, z: curveX.map(() => level),
+      connectgaps: false,
+      line: { color, width: 6 },
+      hovertemplate: 'x = %{x:.3f}<br>λ = %{y:.3f}<br>x₀ = %{z:.3f}<extra></extra>'
+    };
+  };
+
+  Plotly.newPlot('equilibrium', [{
+    type: 'surface',
+    x: xValues,
+    y: lambdaValues,
+    z: x0Values,
+    colorscale: 'Viridis',
+    showscale: false,
+    hovertemplate: 'x = %{x:.3f}<br>λ = %{y:.3f}<br>x₀ = %{z:.3f}<extra></extra>'
+  }, {
+    type: 'scatter3d', mode: 'lines',
+    x: [0, 0], y: [-2, 4], z: [0, 0],
+    line: { color: 'blue', width: 6 },
+    hovertemplate: 'x = 0<br>λ = %{y:.3f}<br>x₀ = 0<extra></extra>'
+  }, levelCurve(0, 'blue'), levelCurve(0.5, 'red'), levelCurve(-1.0, 'orange')], {
     ...baseLayout,
     scene: {
-      xaxis: axis(''),
-      yaxis: axis(''),
-      zaxis: axis(''),
+      xaxis: { title: { text: 'x' }, range: [-3, 3] },
+      yaxis: { title: { text: 'λ' }, range: [-2, 4] },
+      zaxis: { title: { text: 'x₀' } },
       aspectmode: 'cube'
     }
   }, config);
 
-  Plotly.newPlot('bifurcation', [], {
-    ...baseLayout, xaxis: axis('λ'), yaxis: axis('x')
+  const bifurcationCurves = [[-1.0, 'orange'], [0, 'blue'], [0.5, 'red']].map(([level, color]) => {
+    const curve = levelCurve(level, color);
+    return {
+      type: 'scatter', mode: 'lines',
+      x: curve.y, y: curve.x,
+      name: `x₀ = ${level === -1 ? level.toFixed(1) : level}`, legendgroup: String(level),
+      connectgaps: false,
+      line: { color, width: 3 },
+      hovertemplate: `λ = %{x:.3f}<br>x = %{y:.3f}<br>x₀ = ${level}<extra></extra>`
+    };
+  });
+  // Include the x = 0 branch in the zero-level legend group.
+  bifurcationCurves.push({
+    type: 'scatter', mode: 'lines',
+    x: [-2, 4], y: [0, 0],
+    name: 'x₀ = 0', legendgroup: '0', showlegend: false,
+    line: { color: 'blue', width: 3 },
+    hovertemplate: 'λ = %{x:.3f}<br>x = 0<br>x₀ = 0<extra></extra>'
+  });
+
+  Plotly.newPlot('bifurcation', bifurcationCurves, {
+    ...baseLayout,
+    showlegend: true,
+    legend: { orientation: 'h', x: 0, y: 1.12 },
+    xaxis: { ...axis('λ'), range: [-2, 4] },
+    yaxis: { ...axis('x'), range: [-3, 3] }
   }, config);
 
   Plotly.newPlot('phase', [], {
