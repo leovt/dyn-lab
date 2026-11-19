@@ -23,6 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
     xValues.map(x => x - lambda * Math.sin(x))
   );
   const curveX = Array.from({ length: 2401 }, (_, i) => -3 + i * 6 / 2400);
+  const mainBranchLambda = Array.from({ length: 2401 }, (_, i) => -2 + i * 6 / 2400);
+  const mainBranchX = mainBranchLambda.map(() => 0);
   const levelCurve = (level, color) => {
     const lambdas = curveX.map(x => {
       // x/sin(x) has the removable limit 1 at zero; nonzero levels have a pole.
@@ -48,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     hovertemplate: 'x = %{x:.3f}<br>λ = %{y:.3f}<br>x₀ = %{z:.3f}<extra></extra>'
   }, {
     type: 'scatter3d', mode: 'lines',
-    x: [0, 0], y: [-2, 4], z: [0, 0],
+    x: mainBranchX, y: mainBranchLambda, z: mainBranchX,
     line: { color: 'blue', width: 6 },
     hovertemplate: 'x = 0<br>λ = %{y:.3f}<br>x₀ = 0<extra></extra>'
   }, levelCurve(0, 'blue'), levelCurve(0.5, 'red'), levelCurve(-1.0, 'orange')], {
@@ -75,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Include the x = 0 branch in the zero-level legend group.
   bifurcationCurves.push({
     type: 'scatter', mode: 'lines',
-    x: [-2, 4], y: [0, 0],
+    x: mainBranchLambda, y: mainBranchX,
     name: 'x₀ = 0', legendgroup: '0', showlegend: false,
     line: { color: 'blue', width: 3 },
     hovertemplate: 'λ = %{x:.3f}<br>x = 0<br>x₀ = 0<extra></extra>'
