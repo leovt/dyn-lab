@@ -1,14 +1,23 @@
 # Rod diagrams
 
-Static Plotly.js page with an equilibrium surface and three empty plot frames. Open `rod.html` in a browser;
-an internet connection is required to load Plotly from its CDN. No build is needed.
+[Explore the interactive diagrams](https://leovt.github.io/dyn-lab/)
 
-The desktop layout is a 2 × 2 grid; narrow screens stack the panels in reading order.
-The equilibrium surface plots x₀ = x − λ sin(x) for x ∈ [−3, 3] and λ ∈ [−2, 4],
-with x and λ on the horizontal axes and x₀ on the vertical axis (angles in radians).
-The physical representation uses horizontal sin x and vertical cos x, with equal
-axis scales.
+Explore the equilibrium relation
 
-For future GitHub Pages hosting, push this repository to GitHub and publish from
-the repository root. `index.html` redirects the site root to `rod.html`.
-No remote or deployment has been configured yet.
+$$x_0 = x - \lambda\sin(x)$$
+
+through two complementary views: a 3D equilibrium surface and a 2D bifurcation diagram. Both show $x$ from −3 to 3 and $\lambda$ from −2 to 4, with angles in radians.
+
+The colored curves follow equilibria at fixed values of $x_0$:
+
+| Color | Level |
+| --- | --- |
+| Orange | $x_0 = -1.0$ |
+| Blue | $x_0 = 0$ |
+| Red | $x_0 = 0.5$ |
+
+The blue curves include the straight branch $x = 0$. The bifurcation diagram shows the same curves with $\lambda$ horizontally and $x$ vertically, making it easier to compare their branches.
+
+Drag the 3D surface to rotate it, hover over the surface or sampled curve points to inspect coordinates, and use the plot toolbar to zoom or reset the view. Click a legend entry in the bifurcation diagram to hide or show that level.
+
+The phase diagram and physical representation panels are placeholders for future additions.
