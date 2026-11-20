@@ -1,3 +1,39 @@
+function integrate(lambda, x0, gamma, x_init, v_init, h, steps){
+  // return an array of `steps+1` [x, v] pairs, starting from the initial conditions.
+  const result = [[x_init, v_init]];
+  let x = x_init;
+  let v = v_init;
+  for (let i = 0; i < steps; i++) {
+    const dx1 = v;
+    const dv1 = lambda * Math.sin(x) - x + x0 - gamma * v;
+
+    const v1 = v + 0.5 * h * dv1;
+    const x1 = x + 0.5 * h * dx1;
+
+    const dx2 = v1;
+    const dv2 = lambda * Math.sin(x1) - x1 + x0 - gamma * v1;
+
+    const v2 = v + 0.5 * h * dv2;
+    const x2 = x + 0.5 * h * dx2;
+
+    const dx3 = v2;
+    const dv3 = lambda * Math.sin(x2) - x2 + x0 - gamma * v2;
+
+    const v3 = v + h * dv3;
+    const x3 = x + h * dx3;
+
+    const dx4 = v3;
+    const dv4 = lambda * Math.sin(x3) - x3 + x0 - gamma * v3;
+
+    // RK4 update
+    x += (h / 6) * (dx1 + 2*dx2 + 2*dx3 + dx4);
+    v += (h / 6) * (dv1 + 2*dv2 + 2*dv3 + dv4);
+
+    result.push([x, v]);
+  }
+  return result;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // Phase diagram: 30x20 grid of vector-field arrows, independent of Plotly.
   const PHASE_NI = 30;
