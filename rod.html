@@ -94,6 +94,11 @@
       background: #ffffff;
     }
 
+    svg.plot {
+      display: block;
+      background: #ffffff;
+    }
+
     .note {
       margin: 0;
       padding: 0 1rem 1rem;
@@ -159,8 +164,70 @@
     </section>
     <section aria-labelledby="physical-title">
       <h2 id="physical-title">Physical representation</h2>
-      <div id="physical" class="plot" role="img"
-        aria-label="Empty physical representation, sine of x horizontally and cosine of x vertically"></div>
+      <!-- Square coordinate system, [-1.2, 1.2] both axes: 100 svg units per
+           data unit, origin at (150, 150), y up. preserveAspectRatio keeps the
+           system square at any panel aspect ratio (letterboxed if needed). -->
+      <svg class="plot" role="img" viewBox="0 0 300 300" preserveAspectRatio="xMidYMid meet"
+        aria-label="Physical representation: rod with pivot on a tilted floor, sine of x horizontally and cosine of x vertically">
+        <defs>
+          <clipPath id="floor-clip">
+            <rect x="-0.5" y="-0.3" width="1" height="0.3" />
+          </clipPath>
+        </defs>
+        <g stroke="#8a97a5" stroke-width="1">
+          <line x1="24" y1="150" x2="276" y2="150" />
+          <line x1="150" y1="276" x2="150" y2="24" />
+          <line x1="50" y1="150" x2="50" y2="155" />
+          <line x1="100" y1="150" x2="100" y2="155" />
+          <line x1="150" y1="150" x2="150" y2="155" />
+          <line x1="200" y1="150" x2="200" y2="155" />
+          <line x1="250" y1="150" x2="250" y2="155" />
+          <line x1="145" y1="50" x2="150" y2="50" />
+          <line x1="145" y1="100" x2="150" y2="100" />
+          <line x1="145" y1="150" x2="150" y2="150" />
+          <line x1="145" y1="200" x2="150" y2="200" />
+          <line x1="145" y1="250" x2="150" y2="250" />
+        </g>
+        <g fill="#4c5b6b" font-family="system-ui, sans-serif" font-size="11">
+          <text x="50" y="169" text-anchor="middle">-1</text>
+          <text x="100" y="169" text-anchor="middle">-0.5</text>
+          <text x="150" y="169" text-anchor="middle">0</text>
+          <text x="200" y="169" text-anchor="middle">0.5</text>
+          <text x="250" y="169" text-anchor="middle">1</text>
+          <text x="141" y="54" text-anchor="end">1</text>
+          <text x="141" y="104" text-anchor="end">0.5</text>
+          <text x="141" y="154" text-anchor="end">0</text>
+          <text x="141" y="204" text-anchor="end">-0.5</text>
+          <text x="141" y="254" text-anchor="end">-1</text>
+        </g>
+        <text x="150" y="291" text-anchor="middle" fill="#172333"
+          font-family="system-ui, sans-serif" font-size="13">sin x</text>
+        <text x="12" y="150" text-anchor="middle" fill="#172333"
+          font-family="system-ui, sans-serif" font-size="13"
+          transform="rotate(-90 12 150)">cos x</text>
+        <!-- Data-coordinate frame: origin at (150,150), 1 data unit = 100 units,
+             y up. Because of the y flip, child rotate(θ) is a CCW math angle
+             about the data origin. Unwired placeholders use rotate(0). -->
+        <g transform="translate(150 150) scale(100,-100)">
+          <!-- Floor: hatched rectangle below y=0, rotated by x0 radians when
+               wired (transform="rotate(x0 * 180 / Math.PI)"). Drawn before the
+               rod so the rod sits on top. -->
+          <g id="floor-group" transform="rotate(0)">
+            <rect x="-0.5" y="-0.3" width="1" height="0.3" fill="#ffffff" />
+            <path clip-path="url(#floor-clip)" fill="none" stroke="#172333" stroke-width="0.02"
+              d="M -0.8 -0.3 L -1.1 0 M -0.7 -0.3 L -1.0 0 M -0.6 -0.3 L -0.9 0 M -0.5 -0.3 L -0.8 0 M -0.4 -0.3 L -0.7 0 M -0.3 -0.3 L -0.6 0 M -0.2 -0.3 L -0.5 0 M -0.1 -0.3 L -0.4 0 M 0 -0.3 L -0.3 0 M 0.1 -0.3 L -0.2 0 M 0.2 -0.3 L -0.1 0 M 0.3 -0.3 L 0 0 M 0.4 -0.3 L 0.1 0 M 0.5 -0.3 L 0.2 0 M 0.6 -0.3 L 0.3 0 M 0.7 -0.3 L 0.4 0 M 0.8 -0.3 L 0.5 0" />
+            <line x1="-0.5" y1="0" x2="0.5" y2="0" stroke="#172333" stroke-width="0.03" />
+          </g>
+          <!-- Rod: grey beam from the origin axis; rotate by the rod angle x
+               later (transform="rotate(x * 180 / Math.PI)"). -->
+          <g id="rod-group" transform="rotate(0)">
+            <rect x="-0.2" y="-0.2" width="0.4" height="1.4" fill="#9aa4b0"
+              stroke="#172333" stroke-width="0.02" />
+          </g>
+          <!-- Pivot axis, on top of the rod, rotation-independent. -->
+          <circle cx="0" cy="0" r="0.07" fill="#ffffff" stroke="#172333" stroke-width="0.03" />
+        </g>
+      </svg>
       <p class="note">Angle convention: (sin x, cos x); zero points upward.</p>
     </section>
   </main>

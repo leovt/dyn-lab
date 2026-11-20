@@ -80,6 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
     x0 = parseFloat(sliders.x0.value);
     outputs.x0.textContent = fmt(x0);
     update_phase_diagram();
+    update_physical_diagram();
   });
   sliders.gamma.addEventListener('input', () => {
     gamma = parseFloat(sliders.gamma.value);
@@ -88,6 +89,22 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   syncParamControls();
+
+  // Physical representation: the rod's angle comes from the x selected on the
+  // bifurcation diagram; the floor's tilt is hooked to the x0 slider.
+  // Both rotate with the same sign so that x = x0 tilts them identically
+  // (inside the y-flipped frame, positive rotate() = CCW math angle).
+  const rodGroup = document.getElementById('rod-group');
+  const floorGroup = document.getElementById('floor-group');
+  const RAD2DEG = 180 / Math.PI;
+  let selectedX = 0;
+
+  function update_physical_diagram() {
+    rodGroup.setAttribute('transform', `rotate(${selectedX * RAD2DEG})`);
+    floorGroup.setAttribute('transform', `rotate(${x0 * RAD2DEG})`);
+  }
+
+  update_physical_diagram();
 
   if (!window.Plotly) {
     document.querySelectorAll('div.plot').forEach(plot => {
@@ -219,15 +236,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const clickedX = fullLayout.yaxis.p2c(ypx);
     x0 = clickedX - clickedLambda * Math.sin(clickedX);
     lambda = clickedLambda;
+    selectedX = clickedX;
     syncParamControls();
     update_phase_diagram();
+    update_physical_diagram();
     Plotly.restyle('bifurcation',
       { x: [[lambda]], y: [[clickedX]] }, [BIF_MARKER_TRACE]);
   });
-
-  Plotly.newPlot('physical', [], {
-    ...baseLayout,
-    xaxis: axis('sin x'),
-    yaxis: { ...axis('cos x'), scaleanchor: 'x', scaleratio: 1, constrain: 'domain' }
-  }, config);
 });
