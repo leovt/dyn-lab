@@ -10,9 +10,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // System: x0 = x - lambda*sin(x) at equilibrium, i.e. F = lambda*sin(x) - x + x0.
   const F = (x, lambda, x0) => lambda * Math.sin(x) - x + x0;
 
-  // Current parameter values, set by clicking the bifurcation diagram below.
+  // Current parameter values, set by the sliders above the diagrams and by
+  // clicking the bifurcation diagram below. gamma = 0 means undamped.
   let lambda = 2.0;
   let x0 = 0.2;
+  let gamma = 0;
 
   // Build the arrow grid: arrow [i][j] sits at (i + 0.5, j + 0.5) in the flipped
   // #phase-plot-area coordinates, so j increases upward.
@@ -38,13 +40,54 @@ document.addEventListener('DOMContentLoaded', () => {
       for (let j = 0; j < PHASE_NJ; j++) {
         const x = scaled_x(i);
         const v = scaled_v(j);
-        const angle = Math.atan2(F(x, lambda, x0), v);
+        // Damped dynamics: x' = v, v' = F(x, lambda, x0) - gamma * v.
+        const angle = Math.atan2(F(x, lambda, x0) - gamma * v, v);
         arrows[i][j].setAttribute('transform', `rotate(${angle * 180 / Math.PI})`);
       }
     }
   }
 
   update_phase_diagram();
+
+  // Parameter sliders above the diagrams.
+  const sliders = {
+    lambda: document.getElementById('lambda-slider'),
+    x0: document.getElementById('x0-slider'),
+    gamma: document.getElementById('gamma-slider')
+  };
+  const outputs = {
+    lambda: document.getElementById('lambda-value'),
+    x0: document.getElementById('x0-value'),
+    gamma: document.getElementById('gamma-value')
+  };
+  const fmt = value => value.toFixed(2);
+
+  function syncParamControls() {
+    sliders.lambda.value = lambda;
+    sliders.x0.value = x0;
+    sliders.gamma.value = gamma;
+    outputs.lambda.textContent = fmt(lambda);
+    outputs.x0.textContent = fmt(x0);
+    outputs.gamma.textContent = fmt(gamma);
+  }
+
+  sliders.lambda.addEventListener('input', () => {
+    lambda = parseFloat(sliders.lambda.value);
+    outputs.lambda.textContent = fmt(lambda);
+    update_phase_diagram();
+  });
+  sliders.x0.addEventListener('input', () => {
+    x0 = parseFloat(sliders.x0.value);
+    outputs.x0.textContent = fmt(x0);
+    update_phase_diagram();
+  });
+  sliders.gamma.addEventListener('input', () => {
+    gamma = parseFloat(sliders.gamma.value);
+    outputs.gamma.textContent = fmt(gamma);
+    update_phase_diagram();
+  });
+
+  syncParamControls();
 
   if (!window.Plotly) {
     document.querySelectorAll('div.plot').forEach(plot => {
@@ -176,6 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const clickedX = fullLayout.yaxis.p2c(ypx);
     x0 = clickedX - clickedLambda * Math.sin(clickedX);
     lambda = clickedLambda;
+    syncParamControls();
     update_phase_diagram();
     Plotly.restyle('bifurcation',
       { x: [[lambda]], y: [[clickedX]] }, [BIF_MARKER_TRACE]);
