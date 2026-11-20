@@ -156,10 +156,18 @@
         aria-label="Phase diagram vector field, x horizontally and x dot vertically; arrows point along the damped flow">
         <defs>
           <g id="arrow">
-            <path d="M -0.5 0.05 L -0.5 -0.05 0.3 -0.05 0.2 -0.2 0.5 0 0.2 0.2 0.3 0.05 Z" fill="#172333" />
+            <path d="M -0.5 0.05 L -0.5 -0.05 0.3 -0.05 0.2 -0.2 0.5 0 0.2 0.2 0.3 0.05 Z" fill="#9aa4b0" />
           </g>
         </defs>
         <g id="phase-plot-area" transform="scale(1,-1)translate(0,-20)"></g>
+        <!-- Problem-unit frame: children draw in data (x, v) units, 1 unit = 5
+             grid units, origin at the frame center (15, 10), v up. Matches the
+             arrow grid: grid_x = 15 + 5x, grid_y = 10 - 5v. -->
+        <g id="phase-plot-area-to-scale" transform="translate(15,10) scale(5,-5)">
+          <path d="" id="phase-trajectory" fill="none" stroke="#007acc" stroke-width="0.04" />
+          <circle id="phase-tracker" r="0.04" cx="999" cy="0.6" fill="white" stroke="#007acc" stroke-width="0.04" />
+        </g>
+
       </svg>
     </section>
     <section aria-labelledby="physical-title">

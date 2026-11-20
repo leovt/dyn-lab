@@ -142,6 +142,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
   update_physical_diagram();
 
+  // Click on the phase SVG: place the tracker at the clicked point in problem
+  // units. The screen->data conversion inverts the live CTM of the
+  // problem-unit frame, so letterboxing, resizes and transform edits on the
+  // group are all handled without hard-coded geometry.
+  const phaseSvg = document.querySelector('svg.phase');
+  const phaseFrame = document.getElementById('phase-plot-area-to-scale');
+  const phaseTracker = document.getElementById('phase-tracker');
+  const phaseTrajectory = document.getElementById('phase-trajectory');
+  // Last clicked point in problem units; reuse this as a trajectory start.
+  let phasePoint = { x: 0, v: 0 };
+
+  phaseSvg.addEventListener('click', e => {
+    const ctm = phaseFrame.getScreenCTM();
+    if (!ctm) return; // not rendered yet
+    const point = new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse());
+    phasePoint = { x: point.x, v: point.y };
+    phaseTracker.setAttribute('cx', phasePoint.x);
+    phaseTracker.setAttribute('cy', phasePoint.v);
+
+    // Integrate from the clicked point and draw: 1500 steps of h = 0.02
+    // (30 time units), 1501 points, path = "M x0 v0 x1 v1 ..." (implicit
+    // linetos), coordinates fixed to 6 decimals, single spaces only.
+    const TRAJECTORY_STEPS = 1500;
+    const TRAJECTORY_H = 0.02;
+    const trajectory = integrate(
+      lambda, x0, gamma, phasePoint.x, phasePoint.v, TRAJECTORY_H, TRAJECTORY_STEPS);
+    phaseTrajectory.setAttribute('d', 'M ' + trajectory
+      .map(([x, v]) => `${x.toFixed(6)} ${v.toFixed(6)}`)
+      .join(' '));
+  });
+
   if (!window.Plotly) {
     document.querySelectorAll('div.plot').forEach(plot => {
       plot.textContent = 'Plotly could not load. Check your internet connection and reload.';
