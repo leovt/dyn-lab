@@ -1,6 +1,53 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // Phase diagram: 30x20 grid of vector-field arrows, independent of Plotly.
+  const PHASE_NI = 30;
+  const PHASE_NJ = 20;
+  const scale_x = 0.2;
+  const scale_v = 0.2;
+  const scaled_x = i => (i - 14.5) * scale_x;
+  const scaled_v = j => (j - 9.5) * scale_v;
+
+  // System: x0 = x - lambda*sin(x) at equilibrium, i.e. F = lambda*sin(x) - x + x0.
+  const F = (x, lambda, x0) => lambda * Math.sin(x) - x + x0;
+
+  // Current parameter values, set by clicking the bifurcation diagram below.
+  let lambda = 2.0;
+  let x0 = 0.2;
+
+  // Build the arrow grid: arrow [i][j] sits at (i + 0.5, j + 0.5) in the flipped
+  // #phase-plot-area coordinates, so j increases upward.
+  const phasePlotArea = document.getElementById('phase-plot-area');
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const arrows = [];
+  for (let i = 0; i < PHASE_NI; i++) {
+    arrows[i] = [];
+    for (let j = 0; j < PHASE_NJ; j++) {
+      const holder = document.createElementNS(SVG_NS, 'g');
+      holder.setAttribute('transform', `translate(${i + 0.5} ${j + 0.5})`);
+      const use = document.createElementNS(SVG_NS, 'use');
+      use.setAttribute('id', `arrow_${i}_${j}`);
+      use.setAttribute('href', '#arrow');
+      holder.appendChild(use);
+      phasePlotArea.appendChild(holder);
+      arrows[i][j] = use;
+    }
+  }
+
+  function update_phase_diagram() {
+    for (let i = 0; i < PHASE_NI; i++) {
+      for (let j = 0; j < PHASE_NJ; j++) {
+        const x = scaled_x(i);
+        const v = scaled_v(j);
+        const angle = Math.atan2(F(x, lambda, x0), v);
+        arrows[i][j].setAttribute('transform', `rotate(${angle * 180 / Math.PI})`);
+      }
+    }
+  }
+
+  update_phase_diagram();
+
   if (!window.Plotly) {
-    document.querySelectorAll('.plot').forEach(plot => {
+    document.querySelectorAll('div.plot').forEach(plot => {
       plot.textContent = 'Plotly could not load. Check your internet connection and reload.';
     });
     return;
@@ -83,6 +130,14 @@ document.addEventListener('DOMContentLoaded', () => {
     hovertemplate: 'λ = %{x:.3f}<br>x = 0<br>x₀ = 0<extra></extra>'
   });
 
+  // Marker for the currently selected (λ, x) point; starts empty.
+  bifurcationCurves.push({
+    type: 'scatter', mode: 'markers', name: 'selected',
+    x: [], y: [], showlegend: false,
+    marker: { color: '#172333', size: 13, symbol: 'diamond', line: { color: '#ffffff', width: 1 } },
+    hovertemplate: 'selected: λ = %{x:.3f}<br>x = %{y:.3f}<extra></extra>'
+  });
+
   Plotly.newPlot('bifurcation', bifurcationCurves, {
     ...baseLayout,
     showlegend: true,
@@ -91,9 +146,40 @@ document.addEventListener('DOMContentLoaded', () => {
     yaxis: { ...axis('x'), range: [-3, 3] }
   }, config);
 
-  Plotly.newPlot('phase', [], {
-    ...baseLayout, xaxis: axis('x'), yaxis: axis('x\u0307')
-  }, config);
+  // Click anywhere on the bifurcation diagram to select the system
+  // parameters: x0 is the equilibrium level through the clicked point, i.e.
+  // x0 = x - λ·sin(x).
+  const BIF_MARKER_TRACE = bifurcationCurves.length - 1;
+  const bifDiv = document.getElementById('bifurcation');
+
+  // Raw DOM click → plot coordinates, so any click inside the axes works (no
+  // snapping, unlike plotly_click which only fires on traces). Pixel→data
+  // conversion uses Plotly's internal axis mapping: p2c expects pixels
+  // relative to the top-left of the plot area = div box minus layout margins.
+  let downPos = null;
+  bifDiv.addEventListener('pointerdown', e => {
+    downPos = [e.clientX, e.clientY];
+  });
+  bifDiv.addEventListener('click', e => {
+    // Ignore clicks that terminate a zoom/pan drag.
+    if (downPos && (e.clientX - downPos[0]) ** 2 + (e.clientY - downPos[1]) ** 2 > 25) {
+      return;
+    }
+    const fullLayout = bifDiv._fullLayout;
+    if (!fullLayout) return; // not initialised yet
+    const rect = bifDiv.getBoundingClientRect();
+    const size = fullLayout._size;
+    const xpx = e.clientX - rect.left - size.l;
+    const ypx = e.clientY - rect.top - size.t;
+    if (xpx < 0 || xpx > size.w || ypx < 0 || ypx > size.h) return; // outside axes
+    const clickedLambda = fullLayout.xaxis.p2c(xpx);
+    const clickedX = fullLayout.yaxis.p2c(ypx);
+    x0 = clickedX - clickedLambda * Math.sin(clickedX);
+    lambda = clickedLambda;
+    update_phase_diagram();
+    Plotly.restyle('bifurcation',
+      { x: [[lambda]], y: [[clickedX]] }, [BIF_MARKER_TRACE]);
+  });
 
   Plotly.newPlot('physical', [], {
     ...baseLayout,
